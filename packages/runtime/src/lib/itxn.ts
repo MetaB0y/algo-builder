@@ -1,5 +1,4 @@
 import algosdk, { decodeAddress, getApplicationAddress } from "algosdk";
-import { has } from "lodash";
 import cloneDeep from "lodash.clonedeep";
 
 import { Interpreter } from "..";
@@ -112,6 +111,8 @@ const acfgAddrTxnFields: { [key: number]: Set<string> } = {
 
 acfgAddrTxnFields[6] = cloneDeep(acfgAddrTxnFields[5]);
 
+// each value here is Addr but they come in array
+const arrayAddrFields = new Set(["Accounts"]);
 const otherAddrTxnFields: { [key: number]: Set<string> } = {
 	5: new Set([
 		"Sender",
@@ -121,6 +122,7 @@ const otherAddrTxnFields: { [key: number]: Set<string> } = {
 		"AssetCloseTo",
 		"AssetReceiver",
 		"FreezeAssetAccount",
+		...arrayAddrFields,
 	]),
 };
 
@@ -306,7 +308,11 @@ export function setInnerTxField(
 		(subTxn as any).apar = (subTxn as any).apar ?? {};
 		(subTxn as any).apar[encodedField] = txValue;
 	} else {
-		if (field === "ApplicationArgs" || arrayNumberFields.has(field)) {
+		if (
+			field === "ApplicationArgs" ||
+			arrayNumberFields.has(field) ||
+			arrayAddrFields.has(field)
+		) {
 			if ((subTxn as any)[encodedField] === undefined) {
 				(subTxn as any)[encodedField] = [];
 			}
